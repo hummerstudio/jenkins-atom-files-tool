@@ -4,20 +4,15 @@ import com.jenkinschina.atom.sdk.AtomContext;
 import com.jenkinschina.atom.sdk.AtomResult;
 import com.jenkinschina.atom.sdk.AtomTask;
 import com.jenkinschina.atom.sdk.ErrorType;
+import com.jenkinschina.atom.sdk.Glob;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Locale;
 
 /**
@@ -148,47 +143,8 @@ public class FilesToolAtom implements AtomTask {
     }
 
     private static List<Path> match(Path workspace, String pattern) throws Exception {
-        List<PathMatcher> matchers = new ArrayList<>();
-        for (String part : pattern.split(",")) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                // `src/**/*.py` must match `src/calc.py`: in Ant-style globs `**/` means "zero or more directories",
-                // while PathMatcher reads it as "at least one". Register the collapsed variants too.
-                for (String variant : collapseDoubleStars(trimmed)) {
-                    matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + variant));
-                }
-            }
-        }
-        List<Path> files = new ArrayList<>();
-        try (var walk = Files.walk(workspace, 16)) {
-            walk.filter(Files::isRegularFile)
-                    .filter(path -> matchers.stream().anyMatch(m -> m.matches(workspace.relativize(path))
-                            || m.matches(java.nio.file.Path.of("_").resolve(workspace.relativize(path)))
-                            || m.matches(path.getFileName())))
-                    .sorted()
-                    .limit(5000)
-                    .forEach(files::add);
-        }
-        return files;
-    }
-
-    // Every way of dropping a double-star segment: src/(**)/x/*.py also matches src/x/*.py and src/x/y/*.py.
-    private static Set<String> collapseDoubleStars(String pattern) {
-        Set<String> variants = new LinkedHashSet<>();
-        variants.add(pattern);
-        Deque<String> queue = new ArrayDeque<>(List.of(pattern));
-        while (!queue.isEmpty()) {
-            String current = queue.poll();
-            int at = current.indexOf("**/");
-            while (at >= 0) {
-                String collapsed = current.substring(0, at) + current.substring(at + 3);
-                if (variants.add(collapsed)) {
-                    queue.add(collapsed);
-                }
-                at = current.indexOf("**/", at + 1);
-            }
-        }
-        return variants;
+        // Glob from the SDK: **/ means zero or more directories, so src/**/*.py finds src/calc.py
+        return Glob.find(workspace, pattern);
     }
 
     private static List<String> split(String line) {
