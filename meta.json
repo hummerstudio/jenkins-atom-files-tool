@@ -1,0 +1,11 @@
+{
+  "name": "Files tool",
+  "summary": "pipeline-utility-steps 的文件部分：touch / sha256 / find / readCSV。",
+  "author": "hummerstudio",
+  "license": "MIT",
+  "tags": [
+    "official-port",
+    "pipeline-utility-steps"
+  ],
+  "homepage": "https://github.com/hummerstudio/jenkins-atom-files-tool"
+}

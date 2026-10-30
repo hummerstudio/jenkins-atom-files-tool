@@ -1,0 +1,81 @@
+{
+  "atomCode": "files-tool",
+  "name": "Files tool",
+  "version": "1.0.0",
+  "description": "pipeline-utility-steps 的文件部分：touch / sha256 / find / readCSV。",
+  "execution": {
+    "packagePath": "files-tool.jar",
+    "language": "java",
+    "target": "$atom_java_path -cp files-tool.jar com.jenkinschina.atom.sdk.AtomRunner"
+  },
+  "input": {
+    "operation": {
+      "label": "操作",
+      "type": "selector",
+      "default": "sha256",
+      "options": [
+        "touch",
+        "sha256",
+        "find",
+        "readcsv"
+      ]
+    },
+    "files": {
+      "label": "touch 的文件（逗号分隔）",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "pattern": {
+      "label": "匹配的文件（glob，逗号分隔）",
+      "type": "vuex-input",
+      "default": "**/*.jar"
+    },
+    "output": {
+      "label": "sha256 写到哪个文件",
+      "type": "vuex-input",
+      "default": "checksums.sha256"
+    },
+    "file": {
+      "label": "readcsv 的 CSV 文件",
+      "type": "vuex-input",
+      "default": ""
+    },
+    "column": {
+      "label": "readcsv 的列名（留空取第一列）",
+      "type": "vuex-input",
+      "default": ""
+    }
+  },
+  "output": {
+    "count": {
+      "type": "string",
+      "description": "数量"
+    },
+    "files": {
+      "type": "string",
+      "description": "匹配的文件"
+    },
+    "first": {
+      "type": "string",
+      "description": "第一个值"
+    },
+    "values": {
+      "type": "string",
+      "description": "CSV 列值"
+    },
+    "output": {
+      "type": "string",
+      "description": "sha256 输出文件"
+    },
+    "checksums": {
+      "type": "artifact",
+      "description": "归档的校验和文件"
+    }
+  },
+  "x-jenkins": {
+    "protocol": "jenkins-1",
+    "requires": {
+      "runner": ">=0.4.0"
+    }
+  }
+}
