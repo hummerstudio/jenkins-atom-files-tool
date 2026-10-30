@@ -13,7 +13,11 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 
 /**
@@ -148,7 +152,11 @@ public class FilesToolAtom implements AtomTask {
         for (String part : pattern.split(",")) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
-                matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + trimmed));
+                // `src/**/*.py` must match `src/calc.py`: in Ant-style globs `**/` means "zero or more directories",
+                // while PathMatcher reads it as "at least one". Register the collapsed variants too.
+                for (String variant : collapseDoubleStars(trimmed)) {
+                    matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + variant));
+                }
             }
         }
         List<Path> files = new ArrayList<>();
@@ -162,6 +170,25 @@ public class FilesToolAtom implements AtomTask {
                     .forEach(files::add);
         }
         return files;
+    }
+
+    // Every way of dropping a double-star segment: src/(**)/x/*.py also matches src/x/*.py and src/x/y/*.py.
+    private static Set<String> collapseDoubleStars(String pattern) {
+        Set<String> variants = new LinkedHashSet<>();
+        variants.add(pattern);
+        Deque<String> queue = new ArrayDeque<>(List.of(pattern));
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            int at = current.indexOf("**/");
+            while (at >= 0) {
+                String collapsed = current.substring(0, at) + current.substring(at + 3);
+                if (variants.add(collapsed)) {
+                    queue.add(collapsed);
+                }
+                at = current.indexOf("**/", at + 1);
+            }
+        }
+        return variants;
     }
 
     private static List<String> split(String line) {

@@ -1,7 +1,7 @@
 {
   "atomCode": "files-tool",
   "name": "Files tool",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "pipeline-utility-steps 的文件部分：touch / sha256 / find / readCSV。",
   "execution": {
     "packagePath": "files-tool.jar",
