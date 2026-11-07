@@ -37,4 +37,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: files-tool-atom
-          path: atom/dist/files-tool/
+          path: atom/target/dist/files-tool/
